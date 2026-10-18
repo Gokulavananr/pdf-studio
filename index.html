@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Free PDF Tools - Merge, Split, Rotate</title>
+    <meta name="description" content="Free online PDF tools. Merge, split, and rotate PDF files securely in your browser. No uploads required. 100% free and private.">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js" crossorigin></script>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-content">
+            <a href="#" class="logo" onclick="showPage('home')">⚡ PDF Studio</a>
+            <div class="nav-links">
+                <a href="#" class="nav-link" onclick="showPage('home')">Tools</a>
+                <a href="#" class="nav-link" onclick="showPage('about')">About</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="main-wrapper">
+        
+        <!-- ================= HOME DASHBOARD ================= -->
+        <div id="page-home" class="page active">
+            <div class="header">
+                <h1>Your Free PDF Toolkit</h1>
+                <p class="subtitle">🔒 100% Free & Secure. Files never leave your device.</p>
+            </div>
+            
+            <div class="tool-grid">
+                <div class="tool-card" onclick="showPage('merge')">
+                    <div class="icon">🔗</div>
+                    <h3>Merge PDF</h3>
+                    <p>Combine multiple PDFs into one.</p>
+                </div>
+                <div class="tool-card" onclick="showPage('split')">
+                    <div class="icon">✂️</div>
+                    <h3>Split PDF</h3>
+                    <p>Extract specific pages from a PDF.</p>
+                </div>
+                <div class="tool-card" onclick="showPage('rotate')">
+                    <div class="icon">🔄</div>
+                    <h3>Rotate PDF</h3>
+                    <p>Rotate all pages in a PDF file.</p>
+                </div>
+                <div class="tool-card" onclick="showPage('img2pdf')">
+                    <div class="icon">🖼️</div>
+                    <h3>Image to PDF</h3>
+                    <p>Convert JPG, PNG, or WEBP to PDF.</p>
+                </div>
+            </div>
+
+            <div class="seo-content">
+                <h2>Why use PDF Studio?</h2>
+                <p>Most online PDF tools require you to upload your sensitive documents to their servers. We believe your files are private. That's why PDF Studio processes everything directly in your web browser. Your files never leave your computer or phone.</p>
+                <h2>How to use our tools</h2>
+                <p>Simply select a tool above, drag and drop your PDF file, and let our browser-based engine do the work. It's fast, free, and requires no registration.</p>
+            </div>
+        </div>
+
+        <!-- ================= MERGE TOOL ================= -->
+        <div id="page-merge" class="page">
+            <button class="back-btn" onclick="showPage('home')">← Back to Tools</button>
+            <div class="header"><h1>Merge PDF Files</h1></div>
+            <div id="merge-drop-zone" class="drop-zone">
+                <div class="icon">📄</div>
+                <p class="drop-text">Drag & drop PDF files here</p>
+                <p class="or">or</p>
+                <label for="merge-input" class="browse-btn">Select Files</label>
+                <input type="file" id="merge-input" multiple accept=".pdf" hidden>
+            </div>
+            <div id="merge-file-list" class="file-list"></div>
+            <button id="merge-btn" class="action-btn" disabled>Merge & Download</button>
+            <p id="merge-status" class="status"></p>
+            <div id="merge-download-area"></div>
+            <div class="seo-content">
+                <h2>How to Merge PDF Files Online</h2>
+                <p>Merging PDFs is useful when you need to combine multiple documents into a single file for easier sharing or printing. Our free PDF merger allows you to select up to 25MB of files and combine them instantly.</p>
+                <h3>Frequently Asked Questions</h3>
+                <p><strong>Is it safe?</strong> Yes, your files are processed locally in your browser and are never uploaded to our servers.</p>
+            </div>
+        </div>
+
+        <!-- ================= SPLIT TOOL ================= -->
+        <div id="page-split" class="page">
+            <button class="back-btn" onclick="showPage('home')">← Back to Tools</button>
+            <div class="header"><h1>Split PDF</h1></div>
+            <div id="split-drop-zone" class="drop-zone">
+                <div class="icon">✂️</div>
+                <p class="drop-text">Drag & drop 1 PDF file here</p>
+                <p class="or">or</p>
+                <label for="split-input" class="browse-btn">Select File</label>
+                <input type="file" id="split-input" accept=".pdf" hidden>
+            </div>
+            <div id="split-file-name" class="file-item" style="display:none;"></div>
+            <div id="split-options" style="display:none;">
+                <p style="margin: 15px 0 5px; font-weight: 500;">Enter pages to extract (e.g. 1-3, 5):</p>
+                <input type="text" id="split-pages" placeholder="1-3, 5" class="text-input">
+            </div>
+            <button id="split-btn" class="action-btn" disabled>Split & Download</button>
+            <p id="split-status" class="status"></p>
+            <div id="split-download-area"></div>
+            <div class="seo-content">
+                <h2>Extract Pages from PDF</h2>
+                <p>Need just one page from a 50-page document? Use our Split PDF tool to extract specific pages. Simply upload your PDF and type the page numbers you want to keep (like 1-3, 5).</p>
+            </div>
+        </div>
+
+        <!-- ================= ROTATE TOOL ================= -->
+        <div id="page-rotate" class="page">
+            <button class="back-btn" onclick="showPage('home')">← Back to Tools</button>
+            <div class="header"><h1>Rotate PDF</h1></div>
+            <div id="rotate-drop-zone" class="drop-zone">
+                <div class="icon">🔄</div>
+                <p class="drop-text">Drag & drop 1 PDF file here</p>
+                <p class="or">or</p>
+                <label for="rotate-input" class="browse-btn">Select File</label>
+                <input type="file" id="rotate-input" accept=".pdf" hidden>
+            </div>
+            <div id="rotate-file-name" class="file-item" style="display:none;"></div>
+            <div id="rotate-options" style="display:none;">
+                <p style="margin: 15px 0 5px; font-weight: 500;">Select Rotation:</p>
+                <select id="rotate-degree" class="text-input">
+                    <option value="90">90° Clockwise</option>
+                    <option value="180">180°</option>
+                    <option value="270">90° Counter-Clockwise</option>
+                </select>
+            </div>
+            <button id="rotate-btn" class="action-btn" disabled>Rotate & Download</button>
+            <p id="rotate-status" class="status"></p>
+            <div id="rotate-download-area"></div>
+            <div class="seo-content">
+                <h2>Fix Scanned Documents</h2>
+                <p>If you scanned a document upside down or sideways, use our Rotate PDF tool to fix it. You can rotate all pages in your document by 90, 180, or 270 degrees instantly.</p>
+            </div>
+        </div>
+
+        <!-- ================= IMAGE TO PDF TOOL ================= -->
+        <div id="page-img2pdf" class="page">
+            <button class="back-btn" onclick="showPage('home')">← Back to Tools</button>
+            <div class="header"><h1>Image to PDF</h1></div>
+            <div id="img-drop-zone" class="drop-zone">
+                <div class="icon">🖼️</div>
+                <p class="drop-text">Drag & drop images here</p>
+                <p class="or">or</p>
+                <label for="img-input" class="browse-btn">Select Images</label>
+                <input type="file" id="img-input" multiple accept="image/jpeg, image/png, image/webp" hidden>
+            </div>
+            <div id="img-file-list" class="file-list"></div>
+            <div id="img-options" style="display:none;">
+                <p style="margin: 15px 0 5px; font-weight: 500;">Page Size:</p>
+                <select id="img-page-size" class="text-input">
+                    <option value="fit">Fit to Image (Best for varying sizes)</option>
+                    <option value="a4">A4 (Standard Document)</option>
+                    <option value="letter">US Letter</option>
+                </select>
+            </div>
+            <button id="img-btn" class="action-btn" disabled>Convert to PDF</button>
+            <p id="img-status" class="status"></p>
+            <div id="img-download-area"></div>
+            <div class="seo-content">
+                <h2>Convert Images to PDF Online</h2>
+                <p>Need to send multiple photos in one file? Use our free Image to PDF converter. Upload your JPG, PNG, or WEBP images and we will combine them into a single, easy-to-share PDF document.</p>
+                <h3>Privacy First</h3>
+                <p>Like all our tools, your images are processed locally in your browser. They are never uploaded to our servers.</p>
+            </div>
+        </div>
+
+        <!-- ================= ABOUT PAGE ================= -->
+        <div id="page-about" class="page">
+            <button class="back-btn" onclick="showPage('home')">← Back to Tools</button>
+            <div class="header"><h1>About PDF Studio</h1></div>
+            <div class="seo-content" style="margin-top:0;">
+                <p>PDF Studio was created by a student developer who wanted to build a fast, free, and secure alternative to traditional PDF tools. Most online tools upload your private files to a server, which can take time and compromise your privacy.</p>
+                <p>We built this tool using modern web technologies (JavaScript and PDF-lib), allowing your browser to do all the heavy lifting. This means no uploads, no waiting, and complete privacy.</p>
+                <p>Our goal is to keep this tool 100% free for everyone by using non-intrusive advertising.</p>
+                <div style="margin-top: 30px; text-align: center; padding: 20px; background: #f8fafc; border-radius: 16px; border: 2px dashed #cbd5e1;">
+                    <h3 style="color: #1a1a1a; margin-bottom: 10px;">Support the Developer</h3>
+                    <p style="margin-bottom: 15px;">If you find these tools helpful, consider buying me a coffee. Your support keeps this project running and ad-free!</p>
+                    <a href="https://buymeacoffee.com/gokul_" target="_blank" class="browse-btn" style="margin-top: 0;">☕ Buy me a coffee</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= PRIVACY POLICY ================= -->
+        <div id="page-privacy" class="page">
+            <button class="back-btn" onclick="showPage('home')">← Back to Tools</button>
+            <div class="header"><h1>Privacy Policy</h1></div>
+            <div class="seo-content" style="margin-top:0;">
+                <p><strong>Last updated: 2024</strong></p>
+                <p>At PDF Studio, accessible from our website, one of our main priorities is the privacy of our visitors. This Privacy Policy document contains types of information that is collected and recorded by PDF Studio and how we use it.</p>
+                <h3>File Processing</h3>
+                <p>Unlike other services, we do not upload your files to our servers. All PDF processing (merging, splitting, rotating) happens entirely within your web browser. We do not have access to your documents, and they are never stored on our servers.</p>
+                <h3>Log Files and Cookies</h3>
+                <p>PDF Studio follows a standard procedure of using log files. These files log visitors when they visit websites. The information collected by log files include internet protocol (IP) addresses, browser type, Internet Service Provider (ISP), date and time stamp, referring/exit pages, and possibly the number of clicks. These are not linked to any information that is personally identifiable.</p>
+                <h3>Google AdSense and Third-Party Cookies</h3>
+                <p>We may use third-party advertising companies, such as Google AdSense, to serve ads when you visit our website. These companies may use information (not including your name, address, email address, or telephone number) about your visits to this and other websites in order to provide advertisements about goods and services of interest to you.</p>
+                <p>Google uses cookies to serve ads based on a user's prior visits to our website or other websites. Google's use of advertising cookies enables it and its partners to serve ads to our users based on their visit to our sites and/or other sites on the Internet. Users may opt out of personalized advertising by visiting <a href="https://myadcenter.google.com/" target="_blank">Google Ads Settings</a>.</p>
+            </div>
+        </div>
+
+    </div>
+
+    <footer class="site-footer">
+        <p>© 2024 PDF Studio. All rights reserved.</p>
+        <p class="disclaimer">This tool is not affiliated with Adobe, iLovePDF, or Canva. PDF is a registered trademark of Adobe Systems Incorporated.</p>
+        <div class="footer-links">
+            <a href="#" onclick="showPage('about')">About Us</a> | 
+            <a href="#" onclick="showPage('privacy')">Privacy Policy</a>
+        </div>
+    </footer>
+
+    <a href="https://buymeacoffee.com/gokul_" target="_blank" class="coffee-btn" title="Support this project">☕ Support Me</a>
+    <script src="script.js"></script>
+</body>
+</html>
