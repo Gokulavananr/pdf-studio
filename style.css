@@ -101,6 +101,13 @@ h1 { font-size: 28px; font-weight: 700; color: #1a1a1a; margin-bottom: 8px; }
 }
 .text-input:focus { outline: none; border-color: #8b3dff; box-shadow: 0 0 0 3px rgba(139, 61, 255, 0.1); }
 
+/* Text to PDF Textarea */
+textarea.text-input {
+    resize: vertical;
+    min-height: 150px;
+    line-height: 1.5;
+}
+
 .action-btn {
     width: 100%; background: #00c4cc; color: white; border: none; padding: 18px;
     border-radius: 50px; font-size: 18px; font-weight: 600; cursor: pointer;
