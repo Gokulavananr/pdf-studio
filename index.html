@@ -55,6 +55,16 @@
                     <h3>Image to PDF</h3>
                     <p>Convert JPG, PNG, or WEBP to PDF.</p>
                 </div>
+                <div class="tool-card" onclick="showPage('text2pdf')">
+                    <div class="icon">📝</div>
+                    <h3>Text to PDF</h3>
+                    <p>Type or paste text to create a PDF.</p>
+                </div>
+                <div class="tool-card" onclick="showPage('collage2pdf')">
+                    <div class="icon">🧩</div>
+                    <h3>Collage to PDF</h3>
+                    <p>Combine multiple images on 1 page.</p>
+                </div>
             </div>
 
             <div class="seo-content">
@@ -170,6 +180,55 @@
                 <p>Need to send multiple photos in one file? Use our free Image to PDF converter. Upload your JPG, PNG, or WEBP images and we will combine them into a single, easy-to-share PDF document.</p>
                 <h3>Privacy First</h3>
                 <p>Like all our tools, your images are processed locally in your browser. They are never uploaded to our servers.</p>
+            </div>
+        </div>
+
+        <!-- ================= TEXT TO PDF TOOL ================= -->
+        <div id="page-text2pdf" class="page">
+            <button class="back-btn" onclick="showPage('home')">← Back to Tools</button>
+            <div class="header"><h1>Text to PDF</h1></div>
+            
+            <p style="margin-bottom: 8px; font-weight: 500;">Enter your text below:</p>
+            <textarea id="text-input" class="text-input" rows="8" placeholder="Type or paste your text here..."></textarea>
+            
+            <p style="margin: 15px 0 5px; font-weight: 500;">Page Size:</p>
+            <select id="text-page-size" class="text-input">
+                <option value="a4">A4 (Standard Document)</option>
+                <option value="letter">US Letter</option>
+            </select>
+
+            <button id="text-btn" class="action-btn">Create PDF</button>
+            <p id="text-status" class="status"></p>
+            <div id="text-download-area"></div>
+
+            <div class="seo-content">
+                <h2>Convert Text to PDF Online</h2>
+                <p>Easily turn any text document, notes, or code snippet into a clean PDF file. Just paste your text, choose your page size, and click create.</p>
+            </div>
+        </div>
+
+        <!-- ================= COLLAGE TO PDF TOOL ================= -->
+        <div id="page-collage2pdf" class="page">
+            <button class="back-btn" onclick="showPage('home')">← Back to Tools</button>
+            <div class="header"><h1>Collage to PDF</h1></div>
+            
+            <div id="collage-drop-zone" class="drop-zone">
+                <div class="icon">🧩</div>
+                <p class="drop-text">Drag & drop images here</p>
+                <p class="or">or</p>
+                <label for="collage-input" class="browse-btn">Select Images</label>
+                <input type="file" id="collage-input" multiple accept="image/jpeg, image/png, image/webp" hidden>
+            </div>
+            
+            <div id="collage-file-list" class="file-list"></div>
+            
+            <button id="collage-btn" class="action-btn" disabled>Create Single Page PDF</button>
+            <p id="collage-status" class="status"></p>
+            <div id="collage-download-area"></div>
+
+            <div class="seo-content">
+                <h2>Combine Images into One Page</h2>
+                <p>Perfect for mood boards, photo collages, or putting multiple receipts on one page. Select your images and our tool will automatically arrange them on a single PDF page.</p>
             </div>
         </div>
 
