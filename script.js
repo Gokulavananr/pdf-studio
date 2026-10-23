@@ -5,10 +5,10 @@ function showPage(pageId) {
     // Show target page
     document.getElementById(`page-${pageId}`).classList.add('active');
     
-    // Clear status messages when changing pages
+    // Clear status messages
     document.querySelectorAll('.status').forEach(el => el.textContent = '');
     
-    // BUG FIX: Clear file lists and error highlights when changing pages so they don't carry over
+    // Clear file lists and error highlights
     document.querySelectorAll('.file-list').forEach(list => list.innerHTML = '');
     document.querySelectorAll('.file-item.error').forEach(el => el.classList.remove('error'));
     
@@ -34,6 +34,17 @@ function showPage(pageId) {
         updateImgList(); 
         imgOptions.style.display = 'none'; 
         imgBtn.disabled = true; 
+    }
+    if (pageId === 'text2pdf') {
+        document.getElementById('text-input').value = '';
+        document.getElementById('text-status').textContent = '';
+        document.getElementById('text-download-area').innerHTML = '';
+    }
+    if (pageId === 'collage2pdf') {
+        filesToCollage = [];
+        updateCollageList();
+        document.getElementById('collage-status').textContent = '';
+        document.getElementById('collage-download-area').innerHTML = '';
     }
 }
 
@@ -81,7 +92,6 @@ const mergeBtn = document.getElementById('merge-btn');
 const mergeStatus = document.getElementById('merge-status');
 const mergeDropZone = document.getElementById('merge-drop-zone');
 const mergeDownloadArea = document.getElementById('merge-download-area');
-
 let filesToMerge = [];
 
 document.querySelector('label[for="merge-input"]').addEventListener('click', () => mergeInput.click());
@@ -483,7 +493,6 @@ imgBtn.addEventListener('click', async () => {
             canvas.width = width;
             canvas.height = height;
             
-            // FIX: Fill with white background to handle transparent PNGs
             ctx.fillStyle = '#FFFFFF'; 
             ctx.fillRect(0, 0, width, height);
             
@@ -552,5 +561,289 @@ imgBtn.addEventListener('click', async () => {
     } finally {
         imgBtn.textContent = 'Convert to PDF';
         imgBtn.disabled = false;
+    }
+});
+
+// =====================================================================
+// 5. TEXT TO PDF LOGIC (UPDATED FOR CODE)
+// =====================================================================
+const textInput = document.getElementById('text-input');
+const textPageSize = document.getElementById('text-page-size');
+const textBtn = document.getElementById('text-btn');
+const textStatus = document.getElementById('text-status');
+const textDownloadArea = document.getElementById('text-download-area');
+
+textBtn.addEventListener('click', async () => {
+    let text = textInput.value;
+    if (!text.trim()) {
+        showError(textStatus, 'Please enter some text first.');
+        return;
+    }
+
+    textBtn.textContent = '⏳ Creating...';
+    textBtn.disabled = true;
+    textStatus.textContent = '';
+    textDownloadArea.innerHTML = '';
+
+    try {
+        text = text.replace(/[•●▪]/g, '-');
+        text = text.replace(/[“”]/g, '"');
+        text = text.replace(/[‘’]/g, "'");
+        text = text.replace(/[–—]/g, "-");
+
+        const pdfDoc = await PDFLib.PDFDocument.create();
+        const font = await pdfDoc.embedFont(PDFLib.StandardFonts.Courier);
+        
+        let pageWidth = 595.28;
+        let pageHeight = 841.89;
+        if (textPageSize.value === 'letter') {
+            pageWidth = 612;
+            pageHeight = 792;
+        }
+
+        const fontSize = 10;
+        const margin = 40;
+        const maxLineWidth = pageWidth - (margin * 2);
+        
+        const lines = [];
+        const paragraphs = text.split('\n');
+        
+        for (const paragraph of paragraphs) {
+            if (paragraph.trim() === '') {
+                lines.push('');
+                continue;
+            }
+            const words = paragraph.split(' ');
+            let currentLine = '';
+            
+            for (const word of words) {
+                const testLine = currentLine ? currentLine + ' ' + word : word;
+                let width;
+                try {
+                    width = font.widthOfTextAtSize(testLine, fontSize);
+                } catch(e) {
+                    continue; 
+                }
+
+                if (width > maxLineWidth) {
+                    lines.push(currentLine);
+                    currentLine = word;
+                } else {
+                    currentLine = testLine;
+                }
+            }
+            if (currentLine) lines.push(currentLine);
+        }
+
+        const lineHeight = fontSize * 1.3;
+        let y = pageHeight - margin;
+        let page = pdfDoc.addPage([pageWidth, pageHeight]);
+
+        for (const line of lines) {
+            if (y < margin + lineHeight) {
+                page = pdfDoc.addPage([pageWidth, pageHeight]);
+                y = pageHeight - margin;
+            }
+            if (line) {
+                try {
+                    page.drawText(line, {
+                        x: margin,
+                        y: y,
+                        size: fontSize,
+                        font: font,
+                        color: PDFLib.rgb(0, 0, 0),
+                    });
+                } catch(e) {}
+            }
+            y -= lineHeight;
+        }
+
+        const bytes = await pdfDoc.save();
+        const blob = new Blob([bytes], { type: 'application/pdf' });
+        
+        triggerDownload(blob, 'text-document.pdf', textDownloadArea);
+        showSuccess(textStatus, 'PDF created successfully!');
+    } catch (error) {
+        console.error(error);
+        showError(textStatus, 'Error creating PDF. Please check your text for unsupported symbols.');
+    } finally {
+        textBtn.textContent = 'Create PDF';
+        textBtn.disabled = false;
+    }
+});
+
+// =====================================================================
+// 6. COLLAGE TO PDF LOGIC
+// =====================================================================
+const collageInput = document.getElementById('collage-input');
+const collageList = document.getElementById('collage-file-list');
+const collageBtn = document.getElementById('collage-btn');
+const collageStatus = document.getElementById('collage-status');
+const collageDropZone = document.getElementById('collage-drop-zone');
+const collageDownloadArea = document.getElementById('collage-download-area');
+
+let filesToCollage = [];
+
+document.querySelector('label[for="collage-input"]').addEventListener('click', () => collageInput.click());
+
+collageInput.addEventListener('change', (e) => {
+    addCollageFiles(Array.from(e.target.files));
+    collageInput.value = ''; 
+});
+
+collageDropZone.addEventListener('dragover', (e) => { e.preventDefault(); collageDropZone.classList.add('dragover'); });
+collageDropZone.addEventListener('dragleave', () => collageDropZone.classList.remove('dragover'));
+collageDropZone.addEventListener('drop', (e) => {
+    e.preventDefault(); collageDropZone.classList.remove('dragover');
+    const images = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+    addCollageFiles(images);
+});
+
+function addCollageFiles(files) {
+    collageStatus.textContent = '';
+    collageDownloadArea.innerHTML = '';
+    
+    const validImages = files.filter(f => f.type.match('image/jpeg') || f.type.match('image/png') || f.type.match('image/webp'));
+    
+    validImages.forEach(file => {
+        if (filesToCollage.length >= 10) {
+            showError(collageStatus, 'You can only add up to 10 images for a single page collage.');
+            return;
+        }
+        if (file.size > MAX_FILE_SIZE) {
+            showError(collageStatus, `"${file.name}" is too large (Max 25MB).`);
+            return;
+        }
+        const exists = filesToCollage.some(f => f.name === file.name && f.size === file.size);
+        if (!exists) filesToCollage.push(file);
+    });
+    
+    updateCollageList();
+}
+
+function updateCollageList() {
+    collageList.innerHTML = '';
+    filesToCollage.forEach((file, index) => {
+        const div = document.createElement('div');
+        div.className = 'file-item';
+        const imgUrl = URL.createObjectURL(file);
+        
+        div.innerHTML = `
+            <img src="${imgUrl}" class="img-preview">
+            <span class="name">${file.name}</span>
+            <span class="size">${formatSize(file.size)}</span>
+            <button class="remove-btn" onclick="removeCollageFile(${index})">×</button>
+        `;
+        collageList.appendChild(div);
+    });
+    
+    collageBtn.disabled = filesToCollage.length < 2;
+}
+
+function removeCollageFile(index) {
+    filesToCollage.splice(index, 1);
+    updateCollageList();
+    collageStatus.textContent = '';
+}
+
+collageBtn.addEventListener('click', async () => {
+    if (filesToCollage.length < 2) return;
+    
+    collageBtn.textContent = '⏳ Creating Collage...';
+    collageBtn.disabled = true;
+    collageStatus.textContent = '';
+    collageDownloadArea.innerHTML = '';
+
+    try {
+        const pdfDoc = await PDFLib.PDFDocument.create();
+        const page = pdfDoc.addPage([595.28, 841.89]); 
+        const pageWidth = page.getWidth();
+        const pageHeight = page.getHeight();
+        
+        const numImages = filesToCollage.length;
+        
+        const cols = Math.ceil(Math.sqrt(numImages));
+        const rows = Math.ceil(numImages / cols);
+        
+        const cellWidth = pageWidth / cols;
+        const cellHeight = pageHeight / rows;
+        const padding = 10; 
+
+        for (let i = 0; i < numImages; i++) {
+            const file = filesToCollage[i];
+            
+            const img = new Image();
+            img.src = URL.createObjectURL(file);
+            await new Promise((resolve) => { img.onload = resolve; });
+
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            const maxDim = 1500; 
+            let width = img.width;
+            let height = img.height;
+            
+            if (width > maxDim || height > maxDim) {
+                if (width > height) {
+                    height = Math.floor(height * (maxDim / width));
+                    width = maxDim;
+                } else {
+                    width = Math.floor(width * (maxDim / height));
+                    height = maxDim;
+                }
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            ctx.fillStyle = '#FFFFFF'; 
+            ctx.fillRect(0, 0, width, height);
+            ctx.drawImage(img, 0, 0, width, height);
+
+            const jpegDataUrl = canvas.toDataURL('image/jpeg', 0.85);
+            const jpegBytes = await fetch(jpegDataUrl).then(res => res.arrayBuffer());
+            const embeddedImg = await pdfDoc.embedJpg(jpegBytes);
+
+            const col = i % cols;
+            const row = Math.floor(i / cols);
+            
+            const cellX = col * cellWidth;
+            const cellY = pageHeight - ((row + 1) * cellHeight); 
+            
+            const maxImgWidth = cellWidth - (padding * 2);
+            const maxImgHeight = cellHeight - (padding * 2);
+            
+            const imgRatio = embeddedImg.width / embeddedImg.height;
+            let drawWidth = maxImgWidth;
+            let drawHeight = maxImgWidth / imgRatio;
+            
+            if (drawHeight > maxImgHeight) {
+                drawHeight = maxImgHeight;
+                drawWidth = maxImgHeight * imgRatio;
+            }
+
+            const x = cellX + (cellWidth - drawWidth) / 2;
+            const y = cellY + (cellHeight - drawHeight) / 2;
+
+            page.drawImage(embeddedImg, {
+                x: x,
+                y: y,
+                width: drawWidth,
+                height: drawHeight,
+            });
+            
+            URL.revokeObjectURL(img.src);
+        }
+
+        const bytes = await pdfDoc.save();
+        const blob = new Blob([bytes], { type: 'application/pdf' });
+        
+        triggerDownload(blob, 'collage.pdf', collageDownloadArea);
+        showSuccess(collageStatus, 'Collage created successfully!');
+    } catch (error) {
+        console.error(error);
+        showError(collageStatus, 'Error creating collage. Please try again.');
+    } finally {
+        collageBtn.textContent = 'Create Single Page PDF';
+        collageBtn.disabled = false;
     }
 });
